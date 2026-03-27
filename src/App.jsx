@@ -5,11 +5,13 @@ import { videos } from "./data/videos.js";
 import styles from "./App.module.css";
 
 export default function App() {
-  const [isMuted, setIsMuted] = useState(true);
-  const [showSettings, setShowSettings] = useState(false); // NEW
+  const [isMuted, setIsMuted]       = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [darkMode, setDarkMode]     = useState(true); // NEW — dark by default
   const feedRef = useRef(null);
   const { activeIndex, registerRef } = useVideoFeed();
 
+  // infinite loop
   useEffect(() => {
     const feed = feedRef.current;
     if (!feed) return;
@@ -24,19 +26,30 @@ export default function App() {
     return () => feed.removeEventListener("scroll", handleScroll);
   }, [activeIndex]);
 
+  // NEW: swap CSS variables on :root when darkMode changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.style.setProperty("--bg",      "#000");
+      root.style.setProperty("--surface", "#111");
+      root.style.setProperty("--text",    "#fff");
+    } else {
+      root.style.setProperty("--bg",      "#f0f0f0");
+      root.style.setProperty("--surface", "#e0e0e0");
+      root.style.setProperty("--text",    "#111");
+    }
+  }, [darkMode]);
+
   return (
     <div className={styles.app}>
 
-      {/* ── NEW: Header ── */}
+      {/* ── Header ── */}
       <header className={styles.header}>
-        {/* tabs */}
         <div className={styles.tabs}>
           <span className={styles.tab}>Following</span>
           <span className={`${styles.tab} ${styles.activeTab}`}>For You</span>
           <span className={styles.tab}>Live</span>
         </div>
-
-        {/* settings gear button */}
         <button
           className={styles.settingsBtn}
           onClick={() => setShowSettings(p => !p)}
@@ -49,9 +62,23 @@ export default function App() {
         </button>
       </header>
 
-      {/* ── NEW: Settings dropdown ── */}
+      {/* ── Settings dropdown ── */}
       {showSettings && (
         <div className={styles.settingsMenu}>
+
+          {/* NEW: dark mode row */}
+          <div className={styles.settingsItem}>
+            <span>Dark Mode</span>
+            <button
+              className={`${styles.toggle} ${darkMode ? styles.toggleOn : ""}`}
+              onClick={() => setDarkMode(p => !p)}
+              aria-label="Toggle dark mode"
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+          </div>
+
+          {/* sound row — unchanged */}
           <div className={styles.settingsItem}>
             <span>Sound</span>
             <button
@@ -62,10 +89,11 @@ export default function App() {
               <span className={styles.toggleThumb} />
             </button>
           </div>
+
         </div>
       )}
 
-      {/* ── Feed (unchanged) ── */}
+      {/* ── Feed ── */}
       <main ref={feedRef} className={styles.feed}>
         {videos.map((video, index) => (
           <div
@@ -83,10 +111,8 @@ export default function App() {
         ))}
       </main>
 
-      {/* ── NEW: Bottom nav ── */}
+      {/* ── Bottom nav ── */}
       <nav className={styles.bottomNav}>
-
-        {/* Home */}
         <button className={`${styles.navBtn} ${styles.navActive}`} aria-label="Home">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -94,7 +120,6 @@ export default function App() {
           <span>Home</span>
         </button>
 
-        {/* Discover */}
         <button className={styles.navBtn} aria-label="Discover">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/>
@@ -103,12 +128,10 @@ export default function App() {
           <span>Discover</span>
         </button>
 
-        {/* Plus button */}
         <button className={styles.plusBtn} aria-label="Create">
           <span className={styles.plusInner}>+</span>
         </button>
 
-        {/* Inbox */}
         <button className={styles.navBtn} aria-label="Inbox">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -116,7 +139,6 @@ export default function App() {
           <span>Inbox</span>
         </button>
 
-        {/* Profile */}
         <button className={styles.navBtn} aria-label="Profile">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -124,8 +146,8 @@ export default function App() {
           </svg>
           <span>Profile</span>
         </button>
-
       </nav>
+
     </div>
   );
 }
