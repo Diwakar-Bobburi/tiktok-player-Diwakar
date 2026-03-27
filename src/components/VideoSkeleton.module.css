@@ -1,0 +1,39 @@
+.skeleton {
+  position: absolute;
+  inset: 0;
+  background: #111;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.06) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  background-size: 468px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.fakeUser {
+  position: absolute;
+  bottom: 80px; left: 16px;
+  display: flex; gap: 10px; align-items: center;
+}
+
+.fakeActions {
+  position: absolute;
+  right: 12px; bottom: 120px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.block { background: rgba(255,255,255,0.08); border-radius: 8px; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; }
+.lines { display: flex; flex-direction: column; gap: 6px; }
+.name  { width: 100px; height: 14px; }
+.desc  { width: 180px; height: 12px; }
+.icon  { width: 36px; height: 36px; border-radius: 50%; }
