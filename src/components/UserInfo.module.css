@@ -1,0 +1,43 @@
+.container { display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 90px); }
+
+.userRow { display: flex; align-items: center; gap: 10px; }
+
+.avatarWrap { position: relative; flex-shrink: 0; }
+
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid white; object-fit: cover; background: #333;
+}
+
+.followBtn {
+  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-size: 14px; font-weight: 700; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.followBtn.following { background: #555; }
+
+.username { font-size: 16px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+
+.followingBadge { font-size: 11px; color: var(--accent-secondary); font-weight: 600; text-transform: uppercase; }
+
+.description {
+  font-size: 14px; line-height: 1.45;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; cursor: pointer;
+}
+
+.description.expanded { display: block; overflow: visible; }
+
+.more { color: rgba(255,255,255,0.7); font-weight: 600; }
+
+.musicRow { display: flex; align-items: center; gap: 6px; }
+
+.musicText {
+  font-size: 13px; color: rgba(255,255,255,0.85);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+}
