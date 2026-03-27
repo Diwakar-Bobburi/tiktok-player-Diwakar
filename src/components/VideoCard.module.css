@@ -130,3 +130,38 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+
+/* ── Bottom overlay row (UserInfo + MusicDisc) ── */
+.overlayRow {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  padding: 0 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* UserInfo needs pointer events so taps work */
+.userInfoWrap {
+  pointer-events: all;
+  flex: 1;
+}
+
+/* MusicDisc is decorative — no pointer events needed */
+.discWrap {
+  pointer-events: none;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Right side action bar ── */
+.actionBarWrap {
+  position: absolute;
+  right: 12px;
+  bottom: 120px;
+  z-index: 6;
+}
