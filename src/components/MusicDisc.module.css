@@ -1,0 +1,30 @@
+.disc {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  position: relative;
+  background: #222;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.spinning {
+  animation: spin 3s linear infinite;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #111;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
