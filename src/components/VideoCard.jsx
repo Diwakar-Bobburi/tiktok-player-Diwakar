@@ -1,17 +1,19 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import ProgressBar from "./ProgressBar.jsx";
+import { useLongPress } from "../hooks/useLongPress.js"; // NEW
 import styles from "./VideoCard.module.css";
 
 export default function VideoCard({ video, isActive, isMuted }) {
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying]     = useState(false);
+  const [isPlaying, setIsPlaying]       = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
-  const [progress, setProgress]       = useState(0);
-  const [showHeart, setShowHeart]     = useState(false); 
+  const [progress, setProgress]         = useState(0);
+  const [showHeart, setShowHeart]       = useState(false);
+  const [longPressing, setLongPressing] = useState(false); // NEW
 
   const playIconTimerRef  = useRef(null);
-  const lastTapRef        = useRef(0);    // stores timestamp of last tap
-  const singleTapTimerRef = useRef(null); //  delays single tap to wait for possible 2nd tap
+  const lastTapRef        = useRef(0);
+  const singleTapTimerRef = useRef(null);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
@@ -30,7 +32,6 @@ export default function VideoCard({ video, isActive, isMuted }) {
     }
   }, [isActive]);
 
-  // unchanged from step 15
   const handleTap = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -55,30 +56,52 @@ export default function VideoCard({ video, isActive, isMuted }) {
     if (v) { v.currentTime = 0; v.play().catch(() => {}); }
   }, []);
 
-  // shows big heart in center for 900ms then hides
   const handleDoubleTap = useCallback(() => {
     setShowHeart(true);
     setTimeout(() => setShowHeart(false), 900);
   }, []);
 
-  //  decides if the tap is a single or double tap
   const handleTapOrDouble = useCallback(() => {
     const now = Date.now();
-    const gap = now - lastTapRef.current; // ms since last tap
+    const gap = now - lastTapRef.current;
     lastTapRef.current = now;
-
     if (gap < 300) {
-      // Second tap came within 300ms — it's a double tap
-      clearTimeout(singleTapTimerRef.current); // cancel the pending single tap
+      clearTimeout(singleTapTimerRef.current);
       handleDoubleTap();
     } else {
-      // First tap — wait 280ms to see if a second tap comes
       clearTimeout(singleTapTimerRef.current);
       singleTapTimerRef.current = setTimeout(() => {
-        handleTap(); // no second tap came, treat as single
+        handleTap();
       }, 280);
     }
   }, [handleTap, handleDoubleTap]);
+
+  // NEW: fires after 450ms hold — pauses video and shows dim
+  const handleLongPressStart = useCallback(() => {
+    const v = videoRef.current;
+    if (v && !v.paused) {
+      v.pause();
+      setIsPlaying(false);
+      setLongPressing(true);
+    }
+  }, []);
+
+  // NEW: fires when finger lifts — resumes video
+  const handleLongPressEnd = useCallback(() => {
+    const v = videoRef.current;
+    if (v && longPressing) {
+      v.play().then(() => setIsPlaying(true)).catch(() => {});
+      setLongPressing(false);
+    }
+  }, [longPressing]);
+
+  // NEW: wire both handlers into useLongPress
+  // handleTapOrDouble is passed as the "onClick" — fires on short press
+  const longPressHandlers = useLongPress(
+    handleLongPressStart,  // fires after 450ms hold
+    handleTapOrDouble,     // fires on short tap
+    450                    // hold duration in ms
+  );
 
   return (
     <div className={styles.card}>
@@ -96,8 +119,12 @@ export default function VideoCard({ video, isActive, isMuted }) {
         onEnded={handleEnded}
       />
 
-      {/* CHANGED: onClick now uses handleTapOrDouble instead of handleTap */}
-      <div className={styles.tapLayer} onClick={handleTapOrDouble} />
+      {/* CHANGED: removed onClick, now uses spread of longPressHandlers */}
+      {/* also adds dimmed class when long pressing */}
+      <div
+        className={`${styles.tapLayer} ${longPressing ? styles.dimmed : ""}`}
+        {...longPressHandlers}
+      />
 
       {showPlayIcon && (
         <div className={styles.playIconWrap}>
@@ -114,12 +141,18 @@ export default function VideoCard({ video, isActive, isMuted }) {
         </div>
       )}
 
-      {/* NEW: big heart that appears on double tap */}
       {showHeart && (
         <div className={styles.heartWrap}>
           <svg viewBox="0 0 24 24" className={styles.bigHeart} fill="#fe2c55">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
+        </div>
+      )}
+
+      {/* NEW: shows "Paused" label while holding */}
+      {longPressing && (
+        <div className={styles.longPressHint}>
+          <span>Paused</span>
         </div>
       )}
 
