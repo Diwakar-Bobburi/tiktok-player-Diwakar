@@ -1,32 +1,100 @@
+/* ── Card container ── */
 .card {
   position: relative;
-  width: 100%; height: 100vh;
-  overflow: hidden; background: #000;
-  flex-shrink: 0; scroll-snap-align: start;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  flex-shrink: 0;
+  scroll-snap-align: start;
 }
 
+/* ── Native video element ── */
 .video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
+/* ── Full-screen tap layer (play/pause + long press) ── */
 .tapLayer {
-  position: absolute; inset: 0; z-index: 2;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-.playIconWrap {
-  position: absolute; top: 50%; left: 50%;
+/* darkens video slightly while long pressing */
+.tapLayer.dimmed {
+  background: rgba(0, 0, 0, 0.35);
+  transition: background var(--transition-fast);
+}
+
+/* ── Invisible mute tap zone (top 40%, centered) ── */
+.muteTapZone {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 40%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Center stack (mute flash on top, play/pause flash below) ── */
+.centerStack {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10; width: 64px; height: 64px;
-  border-radius: 50%; background: rgba(0,0,0,0.42);
-  display: flex; align-items: center; justify-content: center;
-  animation: fadeOut 0.9s ease forwards; pointer-events: none;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
 }
 
-.playIcon { width: 30px; height: 30px; }
+/* ── Mute icon flash ── */
+.muteIconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeOut 0.9s ease forwards;
+  pointer-events: none;
+}
 
+/* ── Play/Pause icon flash ── */
+.playIconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeOut 0.9s ease forwards;
+  pointer-events: none;
+}
+
+.playIcon {
+  width: 30px;
+  height: 30px;
+}
+
+/* ── Double-tap heart ── */
 .heartWrap {
   position: absolute;
   top: 50%;
@@ -36,20 +104,13 @@
   animation: heartPop 0.9s ease forwards;
 }
 
-/* the actual heart SVG size and glow */
 .bigHeart {
   width: 100px;
   height: 100px;
   filter: drop-shadow(0 2px 12px rgba(254, 44, 85, 0.7));
 }
 
-/* darkens the video slightly while held down */
-.tapLayer.dimmed {
-  background: rgba(0, 0, 0, 0.35);
-  transition: background var(--transition-fast);
-}
-
-/* "Paused" pill that appears in the center while holding */
+/* ── Long press paused hint ── */
 .longPressHint {
   position: absolute;
   top: 50%;

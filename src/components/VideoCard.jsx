@@ -1,17 +1,19 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import ProgressBar from "./ProgressBar.jsx";
-import { useLongPress } from "../hooks/useLongPress.js"; // NEW
+import { useLongPress } from "../hooks/useLongPress.js";
 import styles from "./VideoCard.module.css";
 
-export default function VideoCard({ video, isActive, isMuted }) {
+export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) { // CHANGED: added onMuteToggle prop
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying]       = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
+  const [showMuteIcon, setShowMuteIcon] = useState(false); // NEW
   const [progress, setProgress]         = useState(0);
   const [showHeart, setShowHeart]       = useState(false);
-  const [longPressing, setLongPressing] = useState(false); // NEW
+  const [longPressing, setLongPressing] = useState(false);
 
   const playIconTimerRef  = useRef(null);
+  const muteTimerRef      = useRef(null); // NEW
   const lastTapRef        = useRef(0);
   const singleTapTimerRef = useRef(null);
 
@@ -76,7 +78,6 @@ export default function VideoCard({ video, isActive, isMuted }) {
     }
   }, [handleTap, handleDoubleTap]);
 
-  // NEW: fires after 450ms hold — pauses video and shows dim
   const handleLongPressStart = useCallback(() => {
     const v = videoRef.current;
     if (v && !v.paused) {
@@ -86,7 +87,6 @@ export default function VideoCard({ video, isActive, isMuted }) {
     }
   }, []);
 
-  // NEW: fires when finger lifts — resumes video
   const handleLongPressEnd = useCallback(() => {
     const v = videoRef.current;
     if (v && longPressing) {
@@ -95,13 +95,20 @@ export default function VideoCard({ video, isActive, isMuted }) {
     }
   }, [longPressing]);
 
-  // NEW: wire both handlers into useLongPress
-  // handleTapOrDouble is passed as the "onClick" — fires on short press
   const longPressHandlers = useLongPress(
-    handleLongPressStart,  // fires after 450ms hold
-    handleTapOrDouble,     // fires on short tap
-    450                    // hold duration in ms
+    handleLongPressStart,
+    handleTapOrDouble,
+    450
   );
+
+  // NEW: called when upper half of video is tapped
+  const handleMuteTap = useCallback((e) => {
+    e.stopPropagation(); // prevent tap from reaching tapLayer below
+    onMuteToggle();      // toggle mute in App (parent)
+    clearTimeout(muteTimerRef.current);
+    setShowMuteIcon(true);
+    muteTimerRef.current = setTimeout(() => setShowMuteIcon(false), 900);
+  }, [onMuteToggle]);
 
   return (
     <div className={styles.card}>
@@ -119,27 +126,62 @@ export default function VideoCard({ video, isActive, isMuted }) {
         onEnded={handleEnded}
       />
 
-      {/* CHANGED: removed onClick, now uses spread of longPressHandlers */}
-      {/* also adds dimmed class when long pressing */}
+      {/* play/pause tap layer — covers full video */}
       <div
         className={`${styles.tapLayer} ${longPressing ? styles.dimmed : ""}`}
         {...longPressHandlers}
+        onMouseUp={handleLongPressEnd}
+        onTouchEnd={handleLongPressEnd}
       />
 
-      {showPlayIcon && (
-        <div className={styles.playIconWrap}>
-          {isPlaying ? (
-            <svg viewBox="0 0 24 24" className={styles.playIcon} fill="white">
-              <rect x="6" y="4" width="4" height="16"/>
-              <rect x="14" y="4" width="4" height="16"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" className={styles.playIcon} fill="white">
-              <polygon points="5,3 19,12 5,21"/>
-            </svg>
-          )}
-        </div>
-      )}
+      {/* NEW: invisible button on upper half — triggers mute */}
+      <button
+        className={styles.muteTapZone}
+        onClick={handleMuteTap}
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      />
+
+      {/* NEW: center stack — mute flash on top, play/pause flash below */}
+      <div className={styles.centerStack}>
+
+        {/* mute icon — only visible for 900ms after tapping upper half */}
+        {showMuteIcon && (
+          <div className={styles.muteIconWrap}>
+            {isMuted ? (
+              // muted icon (speaker with X)
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            ) : (
+              // unmuted icon (speaker with waves)
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+            )}
+          </div>
+        )}
+
+        {/* play/pause icon — only visible for 900ms after tapping lower half */}
+        {showPlayIcon && (
+          <div className={styles.playIconWrap}>
+            {isPlaying ? (
+              <svg viewBox="0 0 24 24" className={styles.playIcon} fill="white">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className={styles.playIcon} fill="white">
+                <polygon points="5,3 19,12 5,21"/>
+              </svg>
+            )}
+          </div>
+        )}
+
+      </div>
 
       {showHeart && (
         <div className={styles.heartWrap}>
@@ -149,7 +191,6 @@ export default function VideoCard({ video, isActive, isMuted }) {
         </div>
       )}
 
-      {/* NEW: shows "Paused" label while holding */}
       {longPressing && (
         <div className={styles.longPressHint}>
           <span>Paused</span>
