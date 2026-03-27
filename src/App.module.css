@@ -1,0 +1,32 @@
+/* ── Root app container ── */
+.app {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Scroll-snap feed ── */
+.feed {
+  flex: 1;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.feed::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Each video slot ── */
+.feedItem {
+  width: 100%;
+  height: 100vh;
+  scroll-snap-align: start;
+  overflow: hidden;
+}
