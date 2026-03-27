@@ -2,33 +2,50 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
 }
 
 .btn {
-  background: none; border: none; cursor: pointer;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
-  color: white; padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: white;
+  padding: 0;
   transition: transform var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.btn:active { transform: scale(0.9); }
+.btn:active {
+  transform: scale(0.88);
+}
 
 .icon {
-  width: 32px; height: 32px;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
-  transition: fill 0.2s, stroke 0.2s;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+  transition: fill 0.2s ease, stroke 0.2s ease;
 }
 
 .count {
-  font-size: 12px; font-weight: 600;
-  letter-spacing: 0.01em;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
-.liked .icon   { filter: drop-shadow(0 0 6px rgba(254,44,85,0.6)); }
-.bookmarked .icon { filter: drop-shadow(0 0 6px rgba(37,244,238,0.6)); }
-.bounce { animation: likeBounce 0.5s ease; }
+.liked .icon {
+  filter: drop-shadow(0 0 8px rgba(254, 44, 85, 0.7));
+}
+
+.bookmarked .icon {
+  filter: drop-shadow(0 0 8px rgba(37, 244, 238, 0.7));
+}
+
+.bounce {
+  animation: likeBounce 0.5s ease;
+}
