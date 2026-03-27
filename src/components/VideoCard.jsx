@@ -100,19 +100,21 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
   }, []);
 
   // long press — resume on release
-  const handleLongPressEnd = useCallback(() => {
-    const v = videoRef.current;
-    if (v && longPressing) {
-      v.play().then(() => setIsPlaying(true)).catch(() => {});
-      setLongPressing(false);
-    }
-  }, [longPressing]);
+const handleLongPressEnd = useCallback(() => {
+  const v = videoRef.current;
+  if (!v) return;
+  setLongPressing(false);        // always clear the label
+  if (v.paused) {
+    v.play().then(() => setIsPlaying(true)).catch(() => {});
+  }
+}, []);
 
-  const longPressHandlers = useLongPress(
-    handleLongPressStart,
-    handleTapOrDouble,
-    450
-  );
+ const longPressHandlers = useLongPress(
+  handleLongPressStart,  // fires after 450ms hold
+  handleTapOrDouble,     // fires on short tap
+  handleLongPressEnd,    // fires when finger lifts after long press
+  450
+);
 
   // mute tap — flash icon then hide
   const handleMuteTap = useCallback((e) => {
@@ -153,12 +155,11 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
       />
 
       {/* full-screen tap layer — play/pause + long press */}
-      <div
-        className={`${styles.tapLayer} ${longPressing ? styles.dimmed : ""}`}
-        {...longPressHandlers}
-        onMouseUp={handleLongPressEnd}
-        onTouchEnd={handleLongPressEnd}
-      />
+      // AFTER — let useLongPress handle everything internally
+<div
+  className={`${styles.tapLayer} ${longPressing ? styles.dimmed : ""}`}
+  {...longPressHandlers}
+/>
 
       {/* invisible mute tap zone — upper center only */}
       <button

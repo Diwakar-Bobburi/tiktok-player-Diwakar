@@ -1,6 +1,6 @@
 import { useRef, useCallback } from "react";
 
-export function useLongPress(onLongPress, onClick, delay = 450) {
+export function useLongPress(onLongPress, onClick, onLongPressEnd, delay = 450) {
   const timerRef = useRef(null);
   const isLongRef = useRef(false);
 
@@ -14,16 +14,29 @@ export function useLongPress(onLongPress, onClick, delay = 450) {
 
   const stop = useCallback(() => {
     clearTimeout(timerRef.current);
-    if (!isLongRef.current) onClick();
-  }, [onClick]);
+    if (isLongRef.current) {
+      // was a long press — call release handler
+      isLongRef.current = false;
+      onLongPressEnd?.();
+    } else {
+      // was a short tap — call click handler
+      onClick();
+    }
+  }, [onClick, onLongPressEnd]);
 
   const cancel = useCallback(() => {
     clearTimeout(timerRef.current);
-    isLongRef.current = false;
-  }, []);
+    if (isLongRef.current) {
+      isLongRef.current = false;
+      onLongPressEnd?.();
+    }
+  }, [onLongPressEnd]);
 
   return {
-    onMouseDown: start, onMouseUp: stop, onMouseLeave: cancel,
-    onTouchStart: start, onTouchEnd: stop,
+    onMouseDown: start,
+    onMouseUp: stop,
+    onMouseLeave: cancel,
+    onTouchStart: start,
+    onTouchEnd: stop,
   };
 }
