@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react"; // CHANGED: added useCallback
 import VideoCard from "./components/VideoCard.jsx";
 import { useVideoFeed } from "./hooks/useVideoFeed.js";
 import { videos } from "./data/videos.js";
 import styles from "./App.module.css";
 
 export default function App() {
-  const [isMuted, setIsMuted]       = useState(true);
+  const [isMuted, setIsMuted]           = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [darkMode, setDarkMode]     = useState(true); // NEW — dark by default
+  const [darkMode, setDarkMode]         = useState(true);
   const feedRef = useRef(null);
   const { activeIndex, registerRef } = useVideoFeed();
 
@@ -26,7 +26,7 @@ export default function App() {
     return () => feed.removeEventListener("scroll", handleScroll);
   }, [activeIndex]);
 
-  // NEW: swap CSS variables on :root when darkMode changes
+  // dark mode
   useEffect(() => {
     const root = document.documentElement;
     if (darkMode) {
@@ -39,6 +39,44 @@ export default function App() {
       root.style.setProperty("--text",    "#111");
     }
   }, [darkMode]);
+
+  // NEW: keyboard navigation
+  useEffect(() => {
+    const handleKey = (e) => {
+      const feed = feedRef.current;
+      if (!feed) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+
+        if (activeIndex === videos.length - 1) {
+          // on last video → wrap to first
+          feed.scrollTo({ top: 0, behavior: "instant" });
+        } else {
+          // scroll to next video
+          feed.children[activeIndex + 1]?.scrollIntoView({ behavior: "smooth" });
+        }
+
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+
+        if (activeIndex === 0) {
+          // already on first video → do nothing
+          return;
+        }
+        // scroll to previous video
+        feed.children[activeIndex - 1]?.scrollIntoView({ behavior: "smooth" });
+
+      } else if (e.key === " ") {
+        // space bar → toggle mute
+        e.preventDefault();
+        setIsMuted(p => !p);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [activeIndex]); // re-runs when activeIndex changes so it always has latest index
 
   return (
     <div className={styles.app}>
@@ -65,8 +103,6 @@ export default function App() {
       {/* ── Settings dropdown ── */}
       {showSettings && (
         <div className={styles.settingsMenu}>
-
-          {/* NEW: dark mode row */}
           <div className={styles.settingsItem}>
             <span>Dark Mode</span>
             <button
@@ -77,8 +113,6 @@ export default function App() {
               <span className={styles.toggleThumb} />
             </button>
           </div>
-
-          {/* sound row — unchanged */}
           <div className={styles.settingsItem}>
             <span>Sound</span>
             <button
@@ -88,6 +122,11 @@ export default function App() {
             >
               <span className={styles.toggleThumb} />
             </button>
+          </div>
+
+          {/* NEW: keyboard hint row */}
+          <div className={styles.settingsHint}>
+            <p>⌨️ ↑ ↓ navigate &nbsp;·&nbsp; Space mute</p>
           </div>
 
         </div>

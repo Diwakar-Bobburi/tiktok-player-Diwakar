@@ -222,3 +222,15 @@
   from { transform: translateY(-6px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ── Keyboard hint in settings ── */
+.settingsHint {
+  padding: 8px 18px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settingsHint p {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
