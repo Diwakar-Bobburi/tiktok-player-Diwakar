@@ -26,3 +26,19 @@
 }
 
 .playIcon { width: 30px; height: 30px; }
+
+.heartWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  pointer-events: none;
+  animation: heartPop 0.9s ease forwards;
+}
+
+/* the actual heart SVG size and glow */
+.bigHeart {
+  width: 100px;
+  height: 100px;
+  filter: drop-shadow(0 2px 12px rgba(254, 44, 85, 0.7));
+}
