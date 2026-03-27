@@ -1,31 +1,34 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import ProgressBar    from "./ProgressBar.jsx";
-import ActionBar      from "./ActionBar.jsx";      // NEW
-import UserInfo       from "./UserInfo.jsx";        // NEW
-import MusicDisc      from "./MusicDisc.jsx";       // NEW
-import VideoSkeleton  from "./VideoSkeleton.jsx";   // NEW
+import ProgressBar   from "./ProgressBar.jsx";
+import ActionBar     from "./ActionBar.jsx";
+import UserInfo      from "./UserInfo.jsx";
+import MusicDisc     from "./MusicDisc.jsx";
+import VideoSkeleton from "./VideoSkeleton.jsx";
 import { useLongPress } from "../hooks/useLongPress.js";
 import styles from "./VideoCard.module.css";
 
 export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying]       = useState(false);
+
+  const [isPlaying,    setIsPlaying]    = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [showMuteIcon, setShowMuteIcon] = useState(false);
-  const [progress, setProgress]         = useState(0);
-  const [showHeart, setShowHeart]       = useState(false);
+  const [progress,     setProgress]     = useState(0);
+  const [showHeart,    setShowHeart]    = useState(false);
   const [longPressing, setLongPressing] = useState(false);
-  const [isLoading, setIsLoading]       = useState(true); // NEW
+  const [isLoading,    setIsLoading]    = useState(true);
 
   const playIconTimerRef  = useRef(null);
   const muteTimerRef      = useRef(null);
   const lastTapRef        = useRef(0);
   const singleTapTimerRef = useRef(null);
 
+  // sync mute state to video element
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = isMuted;
   }, [isMuted]);
 
+  // auto play/pause when active changes
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -39,6 +42,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     }
   }, [isActive]);
 
+  // tap to play/pause + icon flash
   const handleTap = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -53,21 +57,25 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     playIconTimerRef.current = setTimeout(() => setShowPlayIcon(false), 900);
   }, []);
 
+  // progress bar
   const handleTimeUpdate = useCallback(() => {
     const v = videoRef.current;
     if (v && v.duration) setProgress(v.currentTime / v.duration);
   }, []);
 
+  // loop video when it ends
   const handleEnded = useCallback(() => {
     const v = videoRef.current;
     if (v) { v.currentTime = 0; v.play().catch(() => {}); }
   }, []);
 
+  // double-tap heart animation
   const handleDoubleTap = useCallback(() => {
     setShowHeart(true);
     setTimeout(() => setShowHeart(false), 900);
   }, []);
 
+  // discriminate single tap vs double tap
   const handleTapOrDouble = useCallback(() => {
     const now = Date.now();
     const gap = now - lastTapRef.current;
@@ -81,6 +89,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     }
   }, [handleTap, handleDoubleTap]);
 
+  // long press — pause on hold
   const handleLongPressStart = useCallback(() => {
     const v = videoRef.current;
     if (v && !v.paused) {
@@ -90,6 +99,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     }
   }, []);
 
+  // long press — resume on release
   const handleLongPressEnd = useCallback(() => {
     const v = videoRef.current;
     if (v && longPressing) {
@@ -104,6 +114,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     450
   );
 
+  // mute tap — flash icon then hide
   const handleMuteTap = useCallback((e) => {
     e.stopPropagation();
     onMuteToggle();
@@ -112,7 +123,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
     muteTimerRef.current = setTimeout(() => setShowMuteIcon(false), 900);
   }, [onMuteToggle]);
 
-  // NEW: loading state handlers
+  // loading skeleton handlers
   const handleCanPlay = useCallback(() => setIsLoading(false), []);
   const handleWaiting = useCallback(() => setIsLoading(true),  []);
   const handleError   = useCallback(() => setIsLoading(false), []);
@@ -120,9 +131,10 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
   return (
     <div className={styles.card}>
 
-      {/* NEW: shimmer shown while video is buffering */}
+      {/* shimmer while buffering — only on active card */}
       {isLoading && isActive && <VideoSkeleton />}
 
+      {/* native HTML5 video — no external libraries */}
       <video
         ref={videoRef}
         src={video.url}
@@ -135,11 +147,12 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
-        onCanPlay={handleCanPlay}  {/* NEW */}
-        onWaiting={handleWaiting}  {/* NEW */}
-        onError={handleError}      {/* NEW */}
+        onCanPlay={handleCanPlay}
+        onWaiting={handleWaiting}
+        onError={handleError}
       />
 
+      {/* full-screen tap layer — play/pause + long press */}
       <div
         className={`${styles.tapLayer} ${longPressing ? styles.dimmed : ""}`}
         {...longPressHandlers}
@@ -147,13 +160,17 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
         onTouchEnd={handleLongPressEnd}
       />
 
+      {/* invisible mute tap zone — upper center only */}
       <button
         className={styles.muteTapZone}
         onClick={handleMuteTap}
         aria-label={isMuted ? "Unmute" : "Mute"}
       />
 
+      {/* center stack — mute flash on top, play/pause flash below */}
       <div className={styles.centerStack}>
+
+        {/* mute icon — flashes for 900ms then fades */}
         {showMuteIcon && (
           <div className={styles.muteIconWrap}>
             {isMuted ? (
@@ -172,6 +189,7 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
           </div>
         )}
 
+        {/* play/pause icon — flashes for 900ms then fades */}
         {showPlayIcon && (
           <div className={styles.playIconWrap}>
             {isPlaying ? (
@@ -186,8 +204,10 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
             )}
           </div>
         )}
+
       </div>
 
+      {/* double-tap heart — pops and fades */}
       {showHeart && (
         <div className={styles.heartWrap}>
           <svg viewBox="0 0 24 24" className={styles.bigHeart} fill="#fe2c55">
@@ -196,13 +216,14 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
         </div>
       )}
 
+      {/* long press paused hint */}
       {longPressing && (
         <div className={styles.longPressHint}>
           <span>Paused</span>
         </div>
       )}
 
-      {/* NEW: bottom overlay row — UserInfo left, MusicDisc right */}
+      {/* bottom overlay row — UserInfo left, MusicDisc right */}
       <div className={styles.overlayRow}>
         <div className={styles.userInfoWrap}>
           <UserInfo video={video} />
@@ -212,12 +233,14 @@ export default function VideoCard({ video, isActive, isMuted, onMuteToggle }) {
         </div>
       </div>
 
-      {/* NEW: right side action bar */}
+      {/* right side action bar */}
       <div className={styles.actionBarWrap}>
         <ActionBar video={video} />
       </div>
 
+      {/* progress bar at the very bottom */}
       <ProgressBar progress={progress} />
+
     </div>
   );
 }
