@@ -1,12 +1,13 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import ProgressBar from "./ProgressBar.jsx"; 
 import styles from "./VideoCard.module.css";
 
 export default function VideoCard({ video, isActive, isMuted }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-
-  // --- NEW: state and ref for the play/pause icon flash ---
   const [showPlayIcon, setShowPlayIcon] = useState(false);
+  const [progress, setProgress] = useState(0); 
+
   const playIconTimerRef = useRef(null);
 
   useEffect(() => {
@@ -22,25 +23,39 @@ export default function VideoCard({ video, isActive, isMuted }) {
     } else {
       v.pause();
       setIsPlaying(false);
+      setProgress(0); // NEW — reset bar when video leaves view
     }
   }, [isActive]);
 
-  // --- NEW: tap handler ---
   const handleTap = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-
     if (v.paused) {
       v.play().then(() => setIsPlaying(true)).catch(() => {});
     } else {
       v.pause();
       setIsPlaying(false);
     }
-
-    // show the icon, then hide it after 900ms
     clearTimeout(playIconTimerRef.current);
     setShowPlayIcon(true);
     playIconTimerRef.current = setTimeout(() => setShowPlayIcon(false), 900);
+  }, []);
+
+  // NEW: fires every ~250ms while video plays, updates progress 0→1
+  const handleTimeUpdate = useCallback(() => {
+    const v = videoRef.current;
+    if (v && v.duration) {
+      setProgress(v.currentTime / v.duration);
+    }
+  }, []);
+
+  // NEW: when video ends, loop it back to start
+  const handleEnded = useCallback(() => {
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    }
   }, []);
 
   return (
@@ -55,12 +70,12 @@ export default function VideoCard({ video, isActive, isMuted }) {
         crossOrigin="anonymous"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate} {/* NEW */}
+        onEnded={handleEnded}           {/* NEW */}
       />
 
-      {/* NEW: invisible layer that catches taps */}
       <div className={styles.tapLayer} onClick={handleTap} />
 
-      {/* NEW: play/pause icon that flashes and fades */}
       {showPlayIcon && (
         <div className={styles.playIconWrap}>
           {isPlaying ? (
@@ -76,6 +91,8 @@ export default function VideoCard({ video, isActive, isMuted }) {
         </div>
       )}
 
+      {/* NEW: progress bar sits at the very bottom of the card */}
+      <ProgressBar progress={progress} />
     </div>
   );
 }
