@@ -6,7 +6,7 @@ A TikTok-style vertical video player built as a React web application for the **
 
 ## Video Demo
 
-📹 [Watch Demo](#) 
+https://drive.google.com/file/d/1iSw-SpDTA6shWydUCQL55M34dVOLJ_KO/view?usp=sharing
 
 ---
 
