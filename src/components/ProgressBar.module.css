@@ -1,16 +1,16 @@
 .track {
   position: absolute;
-  bottom: 0;
+  bottom: 60px;          
   left: 0;
   right: 0;
   height: 3px;
   background: rgba(255, 255, 255, 0.25);
-  z-index: 10;
+  z-index: 15;           
 }
 
 .fill {
   height: 100%;
   background: var(--accent);
   transition: width 0.25s linear;
-  box-shadow: 0 0 4px rgba(254, 44, 85, 0.6);
+  box-shadow: 0 0 6px rgba(254, 44, 85, 0.8);
 }
